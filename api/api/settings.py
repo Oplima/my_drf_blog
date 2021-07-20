@@ -190,3 +190,7 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'oplima1@gmail.com'
 EMAIL_HOST_PASSWORD = 'srkulwqppoajggqk'
+
+REST_FRAMEWORK = {
+    'SEARCH_PARAM': 'q'
+}

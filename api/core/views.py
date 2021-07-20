@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, pagination, generics
+from rest_framework import viewsets, permissions, pagination, generics, filters
 from .serializers import PostSerializer, TagSerializer, ContactSerailizer
 from .models import Post
 from taggit.models import Tag
@@ -7,6 +7,8 @@ from rest_framework.views import APIView
 from django.core.mail import send_mail
 
 class PostViewSet(viewsets.ModelViewSet):
+    search_fields = ['content', 'h1']
+    filter_backends = (filters.SearchFilter,)
     serializer_class = PostSerializer
     queryset = Post.objects.all()
     lookup_field = 'slug'
