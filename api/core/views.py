@@ -1,10 +1,11 @@
 from rest_framework import viewsets, permissions, pagination, generics, filters
-from .serializers import PostSerializer, TagSerializer, ContactSerailizer
+from .serializers import PostSerializer, TagSerializer, ContactSerailizer, RegisterSerializer, UserSerializer
 from .models import Post
 from taggit.models import Tag
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.mail import send_mail
+
 
 class PostViewSet(viewsets.ModelViewSet):
     search_fields = ['content', 'h1']
@@ -14,10 +15,12 @@ class PostViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     permission_classes = [permissions.AllowAny]
 
+
 class PageNumberSetPagination(pagination.PageNumberPagination):
     page_size = 6
     page_size_query_param = 'page_size'
     ordering = 'created_at'
+
 
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
@@ -25,6 +28,7 @@ class PostViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     permission_classes = [permissions.AllowAny]
     pagination_class = PageNumberSetPagination
+
 
 class TagDetailView(generics.ListAPIView):
     serializer_class = PostSerializer
@@ -42,6 +46,7 @@ class TagView(generics.ListAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [permissions.AllowAny]
+
 
 class AsideView(generics.ListAPIView):
     queryset = Post.objects.all().order_by('-id')[:5]
@@ -63,3 +68,17 @@ class FeedBackView(APIView):
             message = data.get('message')
             send_mail(f'От {name} | {subject}', message, from_email, ['amromashov@gmail.com'])
             return Response({"success": "Sent"})
+
+
+class RegisterView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = RegisterSerializer
+
+    def post(self, request, *args,  **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({
+            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+            "message": "Пользователь успешно создан",
+        })
