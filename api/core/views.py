@@ -1,6 +1,6 @@
 from rest_framework import viewsets, permissions, pagination, generics, filters
-from .serializers import PostSerializer, TagSerializer, ContactSerailizer, RegisterSerializer, UserSerializer
-from .models import Post
+from .serializers import PostSerializer, TagSerializer, ContactSerailizer, RegisterSerializer, UserSerializer, CommentSerializer
+from .models import Post, Comment
 from taggit.models import Tag
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -34,7 +34,6 @@ class TagDetailView(generics.ListAPIView):
     serializer_class = PostSerializer
     pagination_class = PageNumberSetPagination
     permission_classes = [permissions.AllowAny]
-
 
     def get_queryset(self):
         tag_slug = self.kwargs['tag_slug'].lower()
@@ -82,3 +81,24 @@ class RegisterView(generics.GenericAPIView):
             "user": UserSerializer(user, context=self.get_serializer_context()).data,
             "message": "Пользователь успешно создан",
         })
+
+
+class ProfileView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get(self, request, *args,  **kwargs):
+        return Response({
+            "user": UserSerializer(request.user, context=self.get_serializer_context()).data,
+        })
+
+
+class CommentView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        post_slug = self.kwargs['post_slug'].lower()
+        post = Post.objects.get(slug=post_slug)
+        return Comment.objects.filter(post=post)
